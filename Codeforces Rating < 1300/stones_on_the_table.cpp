@@ -13,7 +13,7 @@ int main(void){
 	int count = 0;
 	char main;
 	for(char c: str){
-		if (count == 0 || main != c) {
+		if (main == c && count != 0) {
 			result += c;
 			main = c;
 		}	
