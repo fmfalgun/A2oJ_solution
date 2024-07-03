@@ -22,7 +22,7 @@ int main(void){
 		if (exist) break;	
 	}
 
-	cout << exist; 
+	cout << (exist?"YES":"NO"); 
 
 	return 0;
 }
