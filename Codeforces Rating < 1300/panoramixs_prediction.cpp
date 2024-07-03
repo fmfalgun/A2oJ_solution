@@ -2,24 +2,27 @@
 
 using namespace std;
 
+bool prime_check(int i){
+	bool result = true;
+	for(int j=2; j <i; j++)
+		if (i%j == 0) {
+			result = false;
+			break;
+		}
+	return result;
+}
+
 int main(void){
 
 	int n, m;
 	cin >> n >> m;
-	bool flag = false;
-	for (int i=n+1; i<m; i++){
-		flag = true;
-		for(int j=2; j <i; j++){
-			if (i%j == 0) {
-				flag = true;
-				break;
-			}
-			cout << i << " " << j << " " <<flag << endl;
-		}	
-		if (flag) break;
+	bool exist = false;
+	for (int i=n+1; i<=m; i++){
+		exist = prime_check(i);
+		if (exist) break;	
 	}
 
-	cout << flag; 
+	cout << exist; 
 
 	return 0;
 }
