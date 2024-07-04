@@ -17,12 +17,13 @@ int main(void){
 	int n, m;
 	cin >> n >> m;
 	bool exist = false;
-	for (int i=n+1; i<=m; i++){
+	int i;
+	for (i=n+1; i<=m; i++){
 		exist = prime_check(i);
 		if (exist) break;	
 	}
 
-	cout << (exist?"YES":"NO"); 
+	cout << ((exist && i==m)?"YES":"NO"); 
 
 	return 0;
 }
