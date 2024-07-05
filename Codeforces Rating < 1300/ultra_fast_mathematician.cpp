@@ -9,7 +9,7 @@ int main(void){
 
 	int count = 0, len = str1.length();
 
-	while(count == len){
+	while(count != len){
 
 		if (str1[count] == str2[count])
 				result += "0";
@@ -17,7 +17,7 @@ int main(void){
 		count++;
 
 	}
-	cout << result << "ok\n";
+	cout << result;
 
 	return 0;
 }
