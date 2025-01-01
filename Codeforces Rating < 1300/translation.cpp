@@ -14,7 +14,7 @@ int main() {
 		
 		int lenn = s.length(), iterator = 0;
 		while(iterator < lenn && flag){
-			if (s[iterator] != t[lenn - iterator -1]) flag = false;
+			if (s[iterator] != t[lenn - iterator]) flag = false;
 			iterator ++;
 		}
 	}
