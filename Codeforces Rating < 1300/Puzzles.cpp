@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <climits>
 
 using namespace std;
 
@@ -14,20 +15,12 @@ int main() {
 
 	sort(f.begin(), f.end());
 
-	for(int i=0; i<m; i++) cout << f[i] << " ";
-	cout << "\n";
-	//cout << "\n" << m-1 << " " << m-n-1 << " " << f[m-1] << " " << f[m-n-1] << endl;
-	//cout << (f[m-1]-f[m-n]) << (f[n-1]-f[0]) << endl;
-		
-	int val = 1001;
-	for(int i=0; i<m; i++){
-	       	if((f[i+n]-f[i]<val) && (i+n <= m-1)) val = f[i+n]-f[i];
-		cout << val << " ";
+	int val = INT_MAX;
+	for (int i=0; i<=m-n; i++){
+		val = min(val, f[i+n-1]-f[i]);
 	}
-	cout << "\n" << val;
+	cout << val;
 
-	//if (m!=n) cout << min((f[m-1]-f[m-n]),(f[n-1]-f[0]));
-	//.else cout << (f[n-1]-f[0]);
     return 0;
 }
 
