@@ -1,48 +1,45 @@
 #include <iostream>
-#include <vector> 
-#include <climits>
+#include <queue>
+#include <vector>
 
 using namespace std;
 
 int main() {
-    
-	int n ,m, value, pos, maxx, minn;
-	cin >> n >> m;
-	vector<int> p, q;	
-	
-	for (int i=0; i<m; i++){
-		cin >> value;
-	       	p.push_back(value);
-	}
-	q = p;
-	value = 0;
-	for(int i=0; i<n; i++){
-		maxx = INT_MIN;
-		for(int i=0; i<m; i++){
-			if (p[i] >= maxx && p[i]>0){ 
-				maxx = p[i];
-				pos = i;
-			}
-		}
-		value += p[pos];
-		p[pos] = p[pos] -1;
-	}
-	cout << value;
+    int n, m;
+    cin >> n >> m;
 
-	value = 0;
-	while(n--){
-		minn = INT_MAX;
-		for(int i=0; i<m; i++){
-			if (q[i] <= minn && q[i] > 0){
-			       	minn = q[i];
-				pos = i;
-			}
-		}
-		value += minn;
-		q[pos] = minn -1;
-	}
-	cout << " " << value;
+    // Priority queues (max-heap for maximum revenue, min-heap for minimum revenue)
+    priority_queue<int> max_heap;
+    priority_queue<int, vector<int>, greater<int>> min_heap;
+
+    // Input the planes' seat counts into both heaps
+    for (int i = 0; i < m; i++) {
+        int seats;
+        cin >> seats;
+        max_heap.push(seats);
+        min_heap.push(seats);
+    }
+
+    int max_revenue = 0, min_revenue = 0;
+
+    // Calculate maximum revenue
+    for (int i = 0; i < n; i++) {
+        int top_seats = max_heap.top();
+        max_heap.pop();
+        max_revenue += top_seats;
+        if (top_seats > 1) max_heap.push(top_seats - 1);
+    }
+
+    // Calculate minimum revenue
+    for (int i = 0; i < n; i++) {
+        int top_seats = min_heap.top();
+        min_heap.pop();
+        min_revenue += top_seats;
+        if (top_seats > 1) min_heap.push(top_seats - 1);
+    }
+
+    cout << max_revenue << " " << min_revenue << endl;
+
     return 0;
 }
-
 
