@@ -36,9 +36,9 @@ int main (void){
 
 	if (!valid) cout << "-1";
 	else {
-		if (comb[1]) cout << "1, 2, 4";
-		else if (comb[2]) cout << "1, 3, 6";
-		else cout << "1, 2, 6";
+		if (comb[1]) cout << "1, 2, 4" << endl;
+		if (comb[2]) cout << "1, 3, 6" << endl;
+		if (comb[3]) cout << "1, 2, 6" << endl;
 	}
 	
 
