@@ -1,7 +1,7 @@
 # A2oJ_solution
 
 - Competitive-programming / DSA solutions, one problem (or one improvement) per branch and PR, even solo.
-- Layout: `Codeforces_Rating_1300/codes/<name>.cpp` (source), `binary/<name>` (compiled output), `input/<name>.in` (sample input), `output/<name>.out` (expected output).
+- Layout: `Codeforces_Rating_1300/codes/<name>.cpp` (source), `binary/<name>` (compiled output), `input/<name>.in` (sample input), `output/<name>.out` (expected output), `mental-model.md` (pattern checklist), `notes/<name>.md` (per-problem deep-dive).
 - One-time local setup after cloning: `git config core.hooksPath .githooks`.
 
 ---
@@ -13,6 +13,7 @@
 - Write the solution in `Codeforces_Rating_1300/codes/<name>.cpp`.
 - Add a sample I/O pair for it: `Codeforces_Rating_1300/input/<name>.in` and `output/<name>.out`.
 - Add at least one comment stating your approach or any assumption the algorithm makes.
+- If the problem taught you something worth keeping, capture it (see "Mental model & notes" below) — optional, not every problem needs it.
 - Compile and self-test before staging: `g++ -O2 -std=c++17 codes/<name>.cpp -o binary/<name> && ./binary/<name> < input/<name>.in`.
 - Review your own diff before staging: `git diff`.
 - Stage only what you touched: `git add <files>`.
@@ -181,6 +182,20 @@ git fetch --prune
 - **State your assumptions correctly** — if the algorithm assumes sorted input, non-negative values, no duplicates, etc., say so; the automated check can't judge whether the stated assumption is actually true.
 - **DRY** — if you paste the same helper (fast I/O template, binary search, GCD, etc.) into a third file, promote it to a shared header instead of a fourth copy.
 - **Consistent naming** — pick one convention (`snake_case` or `camelCase`) and stick to it across the file.
+
+---
+
+## Mental model & notes (per problem-set directory)
+
+- **`mental-model.md`** — one file per problem-set directory (e.g. `Codeforces_Rating_1300/mental-model.md`), sectioned by *pattern/category* (e.g. "Small, fixed numeric bounds"), not by problem.
+  - A checklist to scan *before* coding a new problem, to recognize which pattern it matches.
+  - Append to an existing section when a new problem reinforces that pattern; add a new section only for a genuinely new pattern.
+  - Each entry links to the fuller write-up in `notes/` that it was distilled from.
+- **`notes/<name>.md`** — one file per problem, matching the `<name>` used in `codes/`/`input/`/`output/`.
+  - The full-depth write-up: what made the problem hard, the reasoning step by step, where the thinking initially stalled, a reusable checklist for that problem family.
+  - Not machine-checked and not required for every problem — write one when the problem taught something worth remembering, skip it for routine ones.
+  - This is where AI-discussion/search content and in-depth reasoning gets logged for later reference, so it doesn't need to be re-derived from scratch next time a similar problem shows up.
+- Neither file is linted or gated by CI — they're reflection tools, reviewed the same informal way as any other markdown.
 
 ---
 
