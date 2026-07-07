@@ -21,8 +21,76 @@
   - The commit-msg hook (see below) will reject vague messages automatically.
 - Push the branch: `git push -u origin problem/<slug>`.
 - Open a PR on GitHub — CI runs the checks below and must pass before merging.
-- Merge via squash once CI is green, then delete the branch from GitHub's merge screen.
+- Merge once CI is green, then delete the branch from GitHub's merge screen.
+  - Squash and merge — default choice; collapses messy in-progress commits (attempt/fix/final) into one clean commit.
+  - Rebase and merge — use instead when the branch already has multiple separate, already-clean commits worth preserving individually.
+  - Create a merge commit — skip this; it only adds merge-commit noise with no concurrent branches to reconcile.
 - Sync back locally: `git checkout master && git pull && git branch -d problem/<slug> && git fetch --prune`.
+
+---
+
+## Worked example: one problem, start to finish
+
+A deliberately trivial problem ("read two ints, print their sum") used purely to show the exact commands in order — the algorithm doesn't matter here, the sequence does.
+
+```bash
+# 1. Start from an up-to-date master
+git checkout master
+git pull
+
+# 2. Branch, named after the problem
+git checkout -b problem/sum-of-two-numbers
+
+# 3. Write the solution at Codeforces_Rating_1300/codes/sum_of_two_numbers.cpp:
+#      #include <iostream>
+#      using namespace std;
+#      int main() {
+#          // reads two ints, prints their sum - no assumptions beyond int range
+#          int a, b;
+#          cin >> a >> b;
+#          cout << a + b;
+#          return 0;
+#      }
+
+# 4. Add the sample I/O pair, copied straight from the problem statement
+echo "2 3" > Codeforces_Rating_1300/input/sum_of_two_numbers.in
+printf '5' > Codeforces_Rating_1300/output/sum_of_two_numbers.out
+
+# 5. Compile and self-test
+g++ -O2 -std=c++17 Codeforces_Rating_1300/codes/sum_of_two_numbers.cpp \
+    -o Codeforces_Rating_1300/binary/sum_of_two_numbers
+./Codeforces_Rating_1300/binary/sum_of_two_numbers < Codeforces_Rating_1300/input/sum_of_two_numbers.in
+# -> prints 5, matches output/sum_of_two_numbers.out
+
+# 6. Run the same checks CI will run, before committing anything
+./scripts/check-comments.sh Codeforces_Rating_1300/codes/sum_of_two_numbers.cpp
+./scripts/check-magic-numbers.sh Codeforces_Rating_1300/codes/sum_of_two_numbers.cpp
+./scripts/run-tests.sh Codeforces_Rating_1300/codes/sum_of_two_numbers.cpp
+
+# 7. Review the diff, stage, commit
+git diff
+git add Codeforces_Rating_1300/codes/sum_of_two_numbers.cpp \
+        Codeforces_Rating_1300/input/sum_of_two_numbers.in \
+        Codeforces_Rating_1300/output/sum_of_two_numbers.out
+git commit -m "Sum of two numbers: direct read-and-add, no edge cases"
+# -> the commit-msg hook runs automatically here and passes
+
+# 8. Push the branch
+git push -u origin problem/sum-of-two-numbers
+
+# 9. Open the PR (or use the URL GitHub printed after the push)
+gh pr create --title "Sum of two numbers" --body "Trivial read-and-add solution."
+# -> CI now runs check-comments / check-magic-numbers / run-tests / check-commit-msg
+#    against just this one changed file - must go green before the merge button unlocks
+
+# 10. Merge once CI is green - one clean commit here, so squash and merge is fine
+
+# 11. Sync back locally
+git checkout master
+git pull
+git branch -d problem/sum-of-two-numbers
+git fetch --prune
+```
 
 ---
 
