@@ -9,7 +9,7 @@
 ## Git workflow
 
 - Start from an up-to-date master: `git checkout master && git pull`.
-- Branch per unit of work, named after the problem: `git checkout -b problem/<slug>`.
+- Branch per unit of work, named per the convention below: `git checkout -b <type>/<slug>`.
 - Write the solution in `Codeforces_Rating_1300/codes/<name>.cpp`.
 - Add a sample I/O pair for it: `Codeforces_Rating_1300/input/<name>.in` and `output/<name>.out`.
 - Add at least one comment stating your approach or any assumption the algorithm makes.
@@ -19,13 +19,81 @@
 - Commit with a message naming the problem and the approach, not a date or "done".
   - Example: `git commit -m "Shooshuns and sequence: two-pointer approach, O(n)"`.
   - The commit-msg hook (see below) will reject vague messages automatically.
-- Push the branch: `git push -u origin problem/<slug>`.
+- Push the branch: `git push -u origin <type>/<slug>`.
 - Open a PR on GitHub — CI runs the checks below and must pass before merging.
 - Merge once CI is green, then delete the branch from GitHub's merge screen.
   - Squash and merge — default choice; collapses messy in-progress commits (attempt/fix/final) into one clean commit.
   - Rebase and merge — use instead when the branch already has multiple separate, already-clean commits worth preserving individually.
   - Create a merge commit — skip this; it only adds merge-commit noise with no concurrent branches to reconcile.
-- Sync back locally: `git checkout master && git pull && git branch -d problem/<slug> && git fetch --prune`.
+- Sync back locally: `git checkout master && git pull && git branch -d <type>/<slug> && git fetch --prune`.
+
+---
+
+## Branch naming convention
+
+Format: `<type>/<short-kebab-slug>`. Derived from [Conventional Commits](https://www.conventionalcommits.org)'s type vocabulary — this repo renames its one dominant type, `feat`, to `problem`, since every unit of real work here is solving one problem.
+
+| Type | Use for | Simple example |
+|------|---------|-----------------|
+| `problem` | Solving a new problem (this repo's `feat`) | `problem/sum-of-two-numbers` |
+| `fix` | Fixing a bug in an already-solved solution | `fix/dragons-off-by-one` |
+| `docs` | Documentation only, no code change | `docs/readme-worked-example` |
+| `chore` | Maintenance/tooling/repo housekeeping | `chore/remove-shower-line-exe` |
+| `refactor` | Restructuring a solution's code, same output | `refactor/split-helpful-maths-into-functions` |
+| `test` | Adding/improving a sample I/O pair only | `test/add-edge-case-for-dragons` |
+| `ci` | Changes to `.github/workflows/` or `scripts/` themselves | `ci/add-magic-number-check` |
+| `perf` | Optimizing an existing solution, same output | `perf/optimize-k-string-loop` |
+| `build` | Rarely needed here — no package manager/build system beyond `g++` directly | *(skip unless one actually comes up)* |
+
+- One type per branch — a branch mixing `problem` work with unrelated `chore` cleanup should be two branches instead.
+- If in doubt between `problem`/`fix`: `problem` solves something new, `fix` corrects a solution that already existed but was wrong.
+
+### One example per type
+
+The push/PR/CI/merge/sync steps are identical for every type — see the full sequence in "Worked example" below. What actually differs per type is just what you touch and what the commit says:
+
+```bash
+# problem - solving a new problem (full 11-step walkthrough is the next section)
+git checkout -b problem/sum-of-two-numbers
+
+# fix - correcting an already-solved solution
+git checkout -b fix/dragons-off-by-one
+# edit Codeforces_Rating_1300/codes/Dragons.cpp, fix the bug
+./scripts/run-tests.sh Codeforces_Rating_1300/codes/Dragons.cpp
+git commit -m "Dragons: fix off-by-one in weak-dragon check"
+
+# docs - documentation only, no code touched
+git checkout -b docs/branch-type-examples
+# edit README.md only
+git commit -m "Add a compact worked example for each branch type"
+
+# chore - maintenance/tooling, not user-facing
+git checkout -b chore/add-gitignore
+# add a .gitignore covering stray build artifacts outside binary/
+git commit -m "Add .gitignore for compiled binaries left outside binary/"
+
+# refactor - restructure a solution, same output
+git checkout -b refactor/split-helpful-maths-into-functions
+# split codes/helpful_maths.cpp's main() into read_input/solve/print_result
+./scripts/run-tests.sh Codeforces_Rating_1300/codes/helpful_maths.cpp
+git commit -m "Helpful maths: split into read/solve/print functions, same output"
+
+# test - sample I/O only, no logic touched
+git checkout -b test/add-edge-case-for-dragons
+# add input/Dragons_min.in + output/Dragons_min.out for the n=1 edge case
+git commit -m "Dragons: add n=1 edge case sample"
+
+# ci - the automation itself
+git checkout -b ci/add-line-length-check
+# edit scripts/ or .github/workflows/ci.yml
+git commit -m "Add a max-line-length check to CI"
+
+# perf - optimize an existing solution, same output
+git checkout -b perf/optimize-k-string-loop
+# rewrite the inner loop in codes/k_string.cpp for lower complexity
+./scripts/run-tests.sh Codeforces_Rating_1300/codes/k_string.cpp
+git commit -m "K string: two-pointer scan instead of nested loop, same output"
+```
 
 ---
 
