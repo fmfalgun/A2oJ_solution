@@ -121,15 +121,29 @@ git checkout -b problem/sum-of-two-numbers
 #          return 0;
 #      }
 
-# 4. Add the sample I/O pair, copied straight from the problem statement
-echo "2 3" > Codeforces_Rating_1300/input/sum_of_two_numbers.in
-printf '5' > Codeforces_Rating_1300/output/sum_of_two_numbers.out
+# 4. Add the sample I/O pair, copied straight from the problem statement.
+#    Separate multiple test cases with a line containing exactly "---".
+#    A single test case needs no delimiter at all.
+cat << 'EOF' > Codeforces_Rating_1300/input/sum_of_two_numbers.in
+2 3
+---
+0 0
+---
+-1 1
+EOF
+cat << 'EOF' > Codeforces_Rating_1300/output/sum_of_two_numbers.out
+5
+---
+0
+---
+0
+EOF
 
 # 5. Compile and self-test
 g++ -O2 -std=c++17 Codeforces_Rating_1300/codes/sum_of_two_numbers.cpp \
     -o Codeforces_Rating_1300/binary/sum_of_two_numbers
 ./Codeforces_Rating_1300/binary/sum_of_two_numbers < Codeforces_Rating_1300/input/sum_of_two_numbers.in
-# -> prints 5, matches output/sum_of_two_numbers.out
+# -> prints 5 (manual smoke-check; run-tests.sh covers all cases automatically)
 
 # 6. Run the same checks CI will run, before committing anything
 ./scripts/check-comments.sh Codeforces_Rating_1300/codes/sum_of_two_numbers.cpp
@@ -168,7 +182,7 @@ git fetch --prune
 - **Comment presence** — `scripts/check-comments.sh` fails if a file has zero comments.
 - **Magic numbers** — `scripts/check-magic-numbers.sh` flags bare sentinel literals (`9999`, `1e9`, etc.) not backed by a named `const`/`#define`.
   - Silence a false positive by adding `// magic-ok` on that line.
-- **Compile + sample test** — `scripts/run-tests.sh` compiles the file and diffs its output against `input/<name>.in`/`output/<name>.out`; fails if either is missing for a new file.
+- **Compile + sample test** — `scripts/run-tests.sh` compiles the file and runs every test case in `input/<name>.in` against the corresponding block in `output/<name>.out`; test cases are separated by a line containing exactly `---` (a single test case with no delimiter also works). The script prints `X/Y test case(s) passed` per file and fails if any case mismatches or either I/O file is missing for a new file.
 - **Commit message** — `scripts/check-commit-msg.sh` rejects pure dates, `Auto-commit` placeholders, bare `problem N`, and anything under 12 characters.
 - These run twice: locally via the `.githooks/pre-push` + `.githooks/commit-msg` hooks, and again in `.github/workflows/ci.yml` on every PR — the PR check is the one that actually blocks a bad merge.
 - Only files changed in the diff are checked, so the 58 pre-existing solutions are never retroactively blocked.
