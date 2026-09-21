@@ -5,12 +5,16 @@ using namespace std;
 
 int main(void){
 
+    // collecting inputs
     string str1, str2;
     cin >> str1 >> str2;
 
+    // setting variables
     bool swap_possible = true;
     int mismatch = 0;
     int mismatch_index[str1.length()];
+
+    //conditional checking starts
     if(str1.length()  != str2.length()) swap_possible = false;
     else {
         int mismatch_index_counter = 0;
