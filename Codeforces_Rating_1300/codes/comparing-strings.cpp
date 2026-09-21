@@ -12,24 +12,24 @@ int main(void){
     // setting variables
     bool swap_possible = true;
     int mismatch = 0;
-    int mismatch_index[str1.length()];
+    int indx1, indx2;
 
-    //conditional checking starts
+    // conditional checking starts
+    // better approach, replacing extra arrays with small int variable
+    // removed extra string based swapping logic
     if(str1.length()  != str2.length()) swap_possible = false;
     else {
         int mismatch_index_counter = 0;
         for (int i = 0; i < str1.length(); i++)
             if (str1[i] != str2[i]) {
                 mismatch++;
-                mismatch_index[mismatch_index_counter++] = i;  
+                if (mismatch == 1) indx1 = i;
+                if (mismatch == 2) indx2 = i;  
             }
         if (mismatch != 2) swap_possible = false;
         else {
-            string temp = str1;
-            char temp_chr = str1[mismatch_index[0]];
-            temp[mismatch_index[0]]  = temp[mismatch_index[1]];
-            temp[mismatch_index[1]]  = temp_chr;
-            if (temp != str2) swap_possible = false;
+            if (!(str1[indx1] == str2[indx2]
+            && str1[indx2] == str2[indx1])) swap_possible = false;
         }
     }
 
