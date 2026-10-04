@@ -7,6 +7,12 @@
 #   Separate multiple test cases with a line containing exactly "---".
 #   A single test case (no delimiter) continues to work unchanged.
 #
+# Usage: run-tests.sh [-t N] file.cpp [file.cpp ...]
+#   no flag : run every test case, print a pass/fail summary.
+#   -t N    : run only test case N (1-based). Everything the program prints
+#             (stdout + stderr) is shown for debugging; only its LAST non-empty
+#             line is compared against the last line of expected chunk N.
+#
 # Summary line printed per file: X/Y test cases passed.
 # Exit code: non-zero if any file fails to compile or any test case fails.
 #
@@ -35,6 +41,16 @@ split_on_delim() {
   done < "$src"
   echo $(( chunk + 1 ))
 }
+
+only=""
+if [[ "${1:-}" == "-t" ]]; then
+  only="${2:-}"
+  if ! [[ "$only" =~ ^[1-9][0-9]*$ ]]; then
+    echo "usage: $0 [-t N] file.cpp [file.cpp ...]   (N = 1-based test case number)" >&2
+    exit 2
+  fi
+  shift 2
+fi
 
 fail=0
 tmp=$(mktemp -d)
@@ -70,6 +86,35 @@ for f in "$@"; do
   if [[ "$n_in" -ne "$n_out" ]]; then
     echo "$f: mismatch — $n_in input chunk(s) but $n_out output chunk(s) in I/O files"
     fail=1
+    continue
+  fi
+
+  # ── Single test case mode: show all output, compare only the last line ────
+  if [[ -n "$only" ]]; then
+    if (( only > n_in )); then
+      echo "$f: test case $only does not exist ($n_in available)"
+      fail=1
+      continue
+    fi
+    in_chunk="$tmp/${name}_in_$(( only - 1 )).chunk"
+    out_chunk="$tmp/${name}_out_$(( only - 1 )).chunk"
+
+    echo "── $f: test case $only output (stderr + stdout) ──"
+    "$bin" < "$in_chunk" 2>&1 | tee "$tmp/$name.actual"
+    echo "── end of output ──"
+
+    # Last non-empty line of each side, trailing whitespace trimmed
+    actual=$(sed 's/[[:space:]]*$//' "$tmp/$name.actual" | grep -v '^$' | tail -n 1)
+    expected=$(sed 's/[[:space:]]*$//' "$out_chunk" | grep -v '^$' | tail -n 1)
+
+    if [[ "$actual" == "$expected" ]]; then
+      echo "$f: test case $only PASSED (last line: $actual)"
+    else
+      echo "$f: test case $only FAILED"
+      echo "  expected last line: $expected"
+      echo "  actual last line:   $actual"
+      fail=1
+    fi
     continue
   fi
 
