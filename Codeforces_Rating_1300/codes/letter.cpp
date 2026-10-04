@@ -23,7 +23,12 @@ int main(void){
     
     // main validation logic to generate the response
     for (char c : input){
-        if (freq[c] > 0) continue;
+        // cout << "c: " << c << ", freq[c]: " << freq[c] << endl;
+	if (freq[c] > 0) {
+	    freq[c] --;
+	}
+	// corner case: infinite spaces allowed and " " is not equals to ' ' !
+	else if (c == ' ') continue;
         else{
             feasible = false;
             break;
