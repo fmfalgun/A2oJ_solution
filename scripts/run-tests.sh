@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Compiles each given .cpp and, if a matching input/<name>.in + output/<name>.out
+# Compiles each given .cpp and, if a matching input/<n>.in + output/<n>.out
 # pair exists, splits them on "---" delimiters into individual test cases and runs
 # each one, diffing against the corresponding expected block.
 #
@@ -16,9 +16,19 @@
 # Summary line printed per file: X/Y test cases passed.
 # Exit code: non-zero if any file fails to compile or any test case fails.
 #
-# Expects the standard layout: <problem-set>/codes/<name>.cpp
-#                               <problem-set>/input/<name>.in
-#                               <problem-set>/output/<name>.out
+# Expects the standard layout: <problem-set>/codes/<n>.cpp
+#                               <problem-set>/input/<n>.in
+#                               <problem-set>/output/<n>.out
+#                               <problem-set>/binary/<n>      (compiled output, written here)
+#
+# CHANGED (layout): the binary/ line above is new. Binaries are no longer written
+# to a temp dir; they are saved in the repo under <problem-set>/binary/.
+#
+# CHANGED (nesting): <problem-set> may now sit at ANY depth, and files may be
+# nested below codes/ (e.g. codes/div2/a.cpp). The subfolder structure under
+# codes/ is mirrored under input/, output/ and binary/:
+#     X/codes/div2/a.cpp -> X/input/div2/a.in, X/output/div2/a.out, X/binary/div2/a
+# Flat files behave exactly as before (codes/a.cpp -> input/a.in, ...).
 set -uo pipefail
 
 DELIM="---"
@@ -53,18 +63,62 @@ if [[ "${1:-}" == "-t" ]]; then
 fi
 
 fail=0
+# tmp is still used for compile logs and split test-case chunks (scratch data
+# that should NOT live in the repo). Only the compiled binary moved out of it.
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
 for f in "$@"; do
   [ -f "$f" ] || continue
-  name=$(basename "$f" .cpp)
-  problem_set=$(dirname "$(dirname "$f")")
-  in_file="$problem_set/input/$name.in"
-  out_file="$problem_set/output/$name.out"
-  bin="$tmp/$name"
+
+  # ── Resolve paths relative to the file's own location ─────────────────────
+  # CHANGED: previously
+  #     name=$(basename "$f" .cpp)
+  #     problem_set=$(dirname "$(dirname "$f")")
+  #     in_file="$problem_set/input/$name.in"
+  #     out_file="$problem_set/output/$name.out"
+  #     bin="$tmp/$name"
+  # That assumed the file is exactly <problem-set>/codes/<n>.cpp, so any extra
+  # nesting below codes/ pointed at the wrong directory. Now we anchor on the
+  # "codes" directory name instead, so depth does not matter.
+
+  # Normalize relative paths so "codes/a.cpp" (no leading ./) also matches the
+  # "*/codes/*" pattern below. Absolute and ./-prefixed paths are left alone.
+  case "$f" in
+    /*|./*) p="$f" ;;
+    *)      p="./$f" ;;
+  esac
+
+  # Refuse files that are not under a codes/ directory rather than guessing.
+  case "$p" in
+    */codes/*.cpp) ;;
+    *)
+      echo "$f: not under a <problem-set>/codes/ directory - cannot locate input/output/binary"
+      fail=1
+      continue
+      ;;
+  esac
+
+  # Everything before the first "/codes/" is the problem set, at any depth.
+  # (%% and # both cut at the FIRST "/codes/", so the two stay consistent.)
+  problem_set="${p%%/codes/*}"
+  rel="${p#*/codes/}"                 # path inside codes/, e.g. div2/a.cpp or a.cpp
+  rel="${rel%.cpp}"                   # e.g. div2/a or a
+
+  # CHANGED: "name" is now only used for temp-file names ($tmp/...), so slashes
+  # are flattened to "__" (div2/a -> div2__a). Real paths below keep the slashes.
+  name="${rel//\//__}"
+
+  # CHANGED: I/O paths mirror the subfolders under codes/ via $rel.
+  in_file="$problem_set/input/$rel.in"
+  out_file="$problem_set/output/$rel.out"
+
+  # CHANGED: binary goes into the repo's binary/ dir (was "$tmp/$name").
+  bin="$problem_set/binary/$rel"
+  mkdir -p "$(dirname "$bin")"        # CHANGED: create binary/ (and subfolders) if missing
 
   # ── Compile ────────────────────────────────────────────────────────────────
+  # Compile log stays in $tmp: it is scratch output, not something to commit.
   if ! g++ -O2 -std=c++17 -o "$bin" "$f" 2>"$tmp/$name.compile.log"; then
     echo "$f: FAILED to compile"
     cat "$tmp/$name.compile.log"
@@ -74,7 +128,8 @@ for f in "$@"; do
 
   # ── Check I/O pair exists ──────────────────────────────────────────────────
   if [ ! -f "$in_file" ] || [ ! -f "$out_file" ]; then
-    echo "$f: no input/$name.in + output/$name.out found - add a sample I/O pair for new problems"
+    # CHANGED: message shows the real resolved paths (includes subfolders).
+    echo "$f: no $in_file + $out_file found - add a sample I/O pair for new problems"
     fail=1
     continue
   fi
